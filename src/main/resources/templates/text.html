@@ -1,0 +1,262 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>第一个页面</title>
+
+
+
+     <script src="js/jquery.js"></script>
+     <script src="webjars/jquery/1.8.3/jquery.min.js"></script>
+     <script src="webjars/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+     <link rel="stylesheet" href="webjars/bootstrap/3.3.7/css/bootstrap.min.css" />
+
+
+</head>
+
+     <script type="text/javascript">
+
+         var pageNow = 0;  //定义的页面
+         var condition;    //定义的条件
+
+         var weiye = 0;   //定义的尾页
+
+
+        //初始化
+        $(function () {
+            var tbody = document.getElementById("tbodyTwo");
+            var i=0;
+            $("#tbodyTwo").empty();
+            $.ajax({
+                url:'http://localhost:8080/ssmgrogshop2/Commodity/tolist2.do',
+                type:'POST',
+                scriptCharset: 'utf-8',
+                dataType:'json',
+                success: function (result) {
+                    pageNow = result.list.currentPage;   //定义的当前页面
+                    var list = result.list.result;
+                    var listOne = result.listOne;
+                    for (var key in list) {
+                        i++;
+                        var item = list[key];
+                        var tr = tbody.insertRow(-1);            // FireFox必须使用-1这个参数
+
+                        var id                  = tr.insertCell(-1);      // Table 有多少列就添加多少个这个
+                        var commodityName       = tr.insertCell(-1);
+                        var commodityTypeName   = tr.insertCell(-1);
+                        var uOMName             = tr.insertCell(-1);
+                        var salePrice           = tr.insertCell(-1);
+                        var huiyuanjia          = tr.insertCell(-1);
+
+                        id.innerHTML                      = '<input type="checkbox" name="id" value="'+item.id+'" />';  //这时一个复选框
+                        commodityName.innerHTML           = item.commodityName;             //商品名称
+                        commodityTypeName.innerHTML       = item.commodityTypeName;         //商品类型
+                        uOMName.innerHTML                 = item.uOMName;                   //计量单位
+                        salePrice.innerHTML               = item.salePrice;                 //销售价格
+                        huiyuanjia.innerHTML              = item.huiyuanjia;                //会员价格
+                    }
+                    //显示类别
+                    var num = 1;
+                    var html = "";
+                    $.each(listOne, function (num) {
+                        var   lx = listOne[num].attributeDetailsName;
+                        var   id    = listOne[num].far_id;
+                         html = html + '<option value="'+ id + '">'+ lx +'</option>';
+                    })
+
+                    $("[name='commodityTypeID']").append(html);
+                    if(i==0){
+                        alert("很抱歉！没有查找到你要找的数据");
+                    }
+                },
+                error:function(){
+                    alert('出现错误');
+                }
+            });
+        })
+
+        //分页模糊   condition是关键字条件   commodityTypeID商品分類
+        function selectFunction(page,condition,commodityTypeID) {
+            if(page==null){
+                page =pageNow
+            }
+
+             var tbody   = document.getElementById("tbodyTwo");
+             var txtname = document.getElementById("txtnameid").value;     //关键字条件
+             var leixing = document.getElementById("selectCboId").value;   //取到商品的分類
+
+             var i=0;
+            $("#tbodyTwo").empty();//刪除所有的行
+
+            $.ajax({
+
+                url:'http://localhost:8080/ssmgrogshop2/Commodity/tolist2.do',
+                type:'POST',
+                data:{"currentPage"    :page,
+                      "txtname"        :txtname,
+                      "commodityTypeID":leixing},
+
+                scriptCharset: 'utf-8',
+                dataType:'json',
+                success: function (result) {
+                    weiye = result.list.totalPage;   //得到尾页
+                    var list = result.list.result;
+                    var num = 1;
+                    for (var key in list) {
+                        i++;
+                        var item = list[key];
+                        var tr = tbody.insertRow(-1);                     // FireFox必须使用-1这个参数
+
+                        var id                  = tr.insertCell(-1);      // Table 有多少列就添加多少个这个
+                        var commodityName       = tr.insertCell(-1);
+                        var commodityTypeName   = tr.insertCell(-1);
+                        var uOMName             = tr.insertCell(-1);
+                        var salePrice           = tr.insertCell(-1);
+                        var huiyuanjia          = tr.insertCell(-1);
+                        id.innerHTML                      = '<input type="checkbox" name="id" value="'+item.id+'" />';  //这时一个复选框
+                        commodityName.innerHTML           = item.commodityName;             //商品名称
+                        commodityTypeName.innerHTML       = item.commodityTypeName;         //商品类型
+                        uOMName.innerHTML                 = item.uOMName;                   //计量单位
+                        salePrice.innerHTML               = item.salePrice;                 //销售价格
+                        huiyuanjia.innerHTML              = item.huiyuanjia;                //会员价格
+                    }
+                    if(i==0){
+                        alert("很抱歉！没有查找到你要找的数据");
+                    }
+                },
+                error:function(){
+                    alert('出现错误');
+                }
+            });
+        }
+
+
+        //加载出2个新增要用的属性
+        function xz() {
+            //window.location.href="templates/add2.html";
+            // window.location.href="add2.html";
+             window.location.href="add.html";
+
+        }
+
+        //修改的时候只能选择一条修改（不可以一次性修改多条）
+        function updatefunction(){
+            var chk_value=[];
+            $('input[name="id"]:checked').each(function(){
+                chk_value.push($(this).val());
+            });
+
+            if(chk_value!=""){
+                if(chk_value.toString().indexOf(",")>0){
+                    alert("修改只能选择一条");
+                }else{
+                    updatefunction2(chk_value);
+                }
+            }else{
+                alert("请选择一条数据进行修改");
+            }
+        }
+
+         //修改2 （得到数据然后跳转到修改页面）
+         function updatefunction2(id) {
+             window.location.href="update.html?id="+id;
+             //window.location.href="update.html";
+         }
+
+
+         //删除
+        function deletefunction(){
+            var chk_value=[];
+            $("input[name='id']:checked").each(function(){
+                chk_value.push($(this).val());
+            });
+            if(chk_value!=""){
+                var flag=window.confirm("注意：您确定要永久删除该信息吗?");
+                if(flag){
+                    deletefunction2(chk_value);
+                }
+            }else{
+                alert("请选择一条或多条数据进行删除");
+            }
+
+        }
+
+
+        //删除2 （得到数据然后跳转到修改页面）
+        function deletefunction2(id) {
+            alert("得到的id为"+id)
+            number = parseInt(id);
+            $.ajax({
+                url:'http://localhost:8080/ssmgrogshop2/Commodity/delete2.do',
+                type:'POST',
+                data:{"id":number},
+                scriptCharset: 'utf-8',
+                dataType:'json',
+                success: function (result) {
+                    if(result=="200"){
+                        window.location.href="${ctx}/si.jsp"
+                    }else{
+                        alert("删除失败");
+                    }
+                },
+                error:function() {
+                    alert('点击删除出现错误');
+                }
+            });
+        }
+
+    </script>
+
+</head>
+<body>
+
+<!-- 根据條件查询的一个div-->
+<div class="row-fluid">
+    <form action="" method="post" style="float: left;">
+        <!--<input id="txtnameid" type="text" name="txtname"  placeholder="请输入关键字" value="${txtname}" />-->
+        <input id="txtnameid" type="text" name="txtname"  placeholder="请输入关键字" />
+        <button type="button" onclick="selectFunction()">搜索</button>
+    </form>
+</div>
+
+<!-- 根据商品分類模糊查询的一个div-->
+<div class="span5">
+    <select id="selectCboId" name="commodityTypeID"  onchange="selectFunction()">
+    </select>
+</div>
+
+
+<button class="" type="button" onclick="xz()">新增</button>
+<button class="" type="button" onclick="updatefunction()">修改</button>
+<button class="" type="button" onclick="deletefunction()">删除</button>
+
+
+<table class="table table-bordered" id="tableid">
+    <thead >
+    <tr>
+        <th rowspan="2">选择</th>
+        <th rowspan="2">商品名称</th>
+        <th rowspan="2">商品类别</th>
+        <th rowspan="2">计量单位</th>
+        <th rowspan="2">销售价格</th>
+        <th rowspan="2">会员价格</th>
+    </tr>
+    </thead>
+
+    <tbody id="tbodyTwo">
+
+    </tbody>
+
+</table>
+<a href="javascript:selectFunction(pageNow=1,condition)">首页</a><br />
+<a href="javascript:selectFunction(pageNow-1,condition)">上一页</a><br />
+<a href="javascript:selectFunction(pageNow+1,condition)">下一页</a><br />
+<a href="javascript:selectFunction(weiye,condition)">末页</a><br />
+
+
+
+    </body>
+</html>
